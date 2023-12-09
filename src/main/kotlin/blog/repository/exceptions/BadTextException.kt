@@ -1,4 +1,4 @@
-package blog.repository
+package blog.repository.exceptions
 
 class BadTextException(val code: Code) : Exception() {
     enum class Code {
