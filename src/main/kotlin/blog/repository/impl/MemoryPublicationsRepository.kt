@@ -1,8 +1,9 @@
 package blog.repository.impl
 
 import blog.model.Publication
-import blog.repository.BadTextException
+import blog.repository.exceptions.BadTextException
 import blog.repository.IPublicationsRepository
+import blog.repository.exceptions.BadParamsException
 import java.time.Instant
 import java.util.*
 
@@ -15,12 +16,12 @@ class MemoryPublicationsRepository : IPublicationsRepository {
         }
     }
 
-    override fun create(text: String): Publication {
+    override fun create(userId: String, text: String): Publication {
         ensureTextCorrect(text)
 
         val id = UUID.randomUUID().toString()
         val now = Instant.now().toString()
-        val pub = Publication(id, text, now, now)
+        val pub = Publication(id, text, now, now, userId)
 
         synchronized(publications) {
             publications[id] = pub
@@ -54,13 +55,18 @@ class MemoryPublicationsRepository : IPublicationsRepository {
         }
     }
 
-    override fun editById(id: String, text: String): Publication? {
+    override fun editById(id: String, text: String, expectedAuthorId: String): Publication? {
         ensureTextCorrect(text)
 
         synchronized(publications) {
             val oldPub = publications[id] ?: return null
+
+            if (oldPub.authorId != expectedAuthorId) {
+                throw BadParamsException(BadParamsException.Code.WRONG_USER)
+            }
+
             val now = Instant.now().toString()
-            val pub = Publication(id, text, oldPub.timeCreated, now)
+            val pub = Publication(id, text, oldPub.timeCreated, now, oldPub.authorId)
             publications[id] = pub
         }
 

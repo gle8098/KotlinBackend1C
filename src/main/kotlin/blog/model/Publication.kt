@@ -7,5 +7,6 @@ data class Publication(
     val id: String,
     val text: String,
     val timeCreated: String,
-    val timeEdited: String
+    val timeEdited: String,
+    val authorId: String
 )
